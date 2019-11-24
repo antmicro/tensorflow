@@ -23,8 +23,8 @@ target_compile_options(app PRIVATE "-fno-threadsafe-statics")
 
 target_sources(app PRIVATE
                 src/assert.cc
-                ../accelerometer_handler.cc
-                ../accelerometer_handler.h
+                src/accelerometer_handler.cc
+                src/accelerometer_handler.h
                 ../output_handler.cc
                 ../output_handler.h
                 ../constants.cc
@@ -33,17 +33,9 @@ target_sources(app PRIVATE
                 ../gesture_predictor.h
                 ../main.cc
                 ../main_functions.cc
-                ../constants.cc
                 ../magic_wand_model_data.cc
-                ../accelerometer_handler.cc
-                ../gesture_predictor.cc
-                ../output_handler.cc
                 ../main_functions.h
-                ../constants.h
                 ../magic_wand_model_data.h
-                ../accelerometer_handler.h
-                ../gesture_predictor.h
-                ../output_handler.h
                 ${MICRO_SOURCES}
                 ${MICRO_KERNELS_SOURCES}
                 ${MICRO_MEMORY_SOURCES}
