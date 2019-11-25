@@ -17,14 +17,19 @@ limitations under the License.
 #include <stdio.h>
 #include <zephyr.h>
 #include <device.h>
+#include <string.h>
 #include <drivers/sensor.h>
 
+#define BUFLEN 300
 int begin_index = 0;
 struct device *sensor = NULL;
 int current_index = 0;
-static float x_val[200];
-static float y_val[200];
-static float z_val[200];
+
+float bufx[BUFLEN] = {0.0};
+float bufy[BUFLEN] = {0.0};
+float bufz[BUFLEN] = {0.0};
+
+bool initial = true;
 
 TfLiteStatus SetupAccelerometer(tflite::ErrorReporter* error_reporter) {
   sensor = device_get_binding("accel-0");
@@ -37,36 +42,64 @@ TfLiteStatus SetupAccelerometer(tflite::ErrorReporter* error_reporter) {
 
 bool ReadAccelerometer(tflite::ErrorReporter* error_reporter, float* input,
                        int length, bool reset_buffer) {
-  int rc = sensor_sample_fetch(sensor);
+  int rc;
   struct sensor_value accel[3];
-  if(rc)
-    return false;
-  rc = sensor_channel_get(sensor,
-                          SENSOR_CHAN_ACCEL_XYZ,
-                          accel);
-  if (rc < 0) {
-    error_reporter->Report("ERROR: Update failed: %d\n", rc);
+  int samples_count;
+
+  if(reset_buffer) {
+    memset(bufx, 0, BUFLEN*sizeof(float));
+    memset(bufy, 0, BUFLEN*sizeof(float));
+    memset(bufz, 0, BUFLEN*sizeof(float));
+    begin_index = 0;
+    initial = true;
+  }
+
+  rc = sensor_sample_fetch(sensor);
+  if(rc < 0) {
+    error_reporter -> Report("Fetch failed\n");
     return false;
   }
-  x_val[current_index] = sensor_value_to_double(&accel[0]);
-  y_val[current_index] = sensor_value_to_double(&accel[1]);
-  z_val[current_index] = sensor_value_to_double(&accel[2]);
+  // skip if there is no data
+  if(!rc) {
+    return false;
+  }
 
-  current_index ++;
-  begin_index ++;
-  // Reset begin_index to simulate behavior of loop buffer
-  if (current_index >= 128) current_index = 0;
-  // Only return true after the function was called 100 times, simulating the
-  // desired behavior of a real implementation (which does not return data until
-  // a sufficient amount is available)
-  if (begin_index > 100) {
-    int sample = 0;
-    for (int i = 0; i < length; i+=3) {
-      input[i] = x_val[sample];
-      input[i+1] = y_val[sample];
-      input[i+2] = z_val[sample];
-      sample++;
+  samples_count = rc;
+  for(int i = 0; i < samples_count; i++) {
+    rc = sensor_channel_get(sensor,
+                            SENSOR_CHAN_ACCEL_XYZ,
+                            accel);
+    if (rc < 0) {
+      error_reporter->Report("ERROR: Update failed: %d\n", rc);
+      return false;
     }
-    return true;
-  } else { return false; }
+    error_reporter->Report("x: %d y: %d z: %d, index: %d", accel[0].val1, accel[1].val1, accel[2].val1, current_index);
+    bufx[begin_index] = sensor_value_to_double(&accel[0]);
+    bufy[begin_index] = sensor_value_to_double(&accel[1]);
+    bufz[begin_index] = sensor_value_to_double(&accel[2]);
+    begin_index++;
+    if (begin_index >= BUFLEN) begin_index = 0;
+
+  }
+
+  if(initial && begin_index >= 100) {
+    initial = false;
+  }
+
+  if (initial) {
+    return false;
+  }
+
+  int sample = 0;
+  for (int i = 0; i < length; i+=3) {
+    int ring_index = begin_index + sample - length/3;
+    if(ring_index < 0) {
+      ring_index += BUFLEN;
+    }
+    input[i] =   bufx[ring_index];
+    input[i+1] = bufy[ring_index];
+    input[i+2] = bufz[ring_index];
+    sample++;
+  }
+  return true;
 }
