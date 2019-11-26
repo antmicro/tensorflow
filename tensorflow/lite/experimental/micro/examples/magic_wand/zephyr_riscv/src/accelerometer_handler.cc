@@ -73,7 +73,6 @@ bool ReadAccelerometer(tflite::ErrorReporter* error_reporter, float* input,
       error_reporter->Report("ERROR: Update failed: %d\n", rc);
       return false;
     }
-    error_reporter->Report("x: %d y: %d z: %d, index: %d", accel[0].val1, accel[1].val1, accel[2].val1, current_index);
     bufx[begin_index] = sensor_value_to_double(&accel[0]);
     bufy[begin_index] = sensor_value_to_double(&accel[1]);
     bufz[begin_index] = sensor_value_to_double(&accel[2]);
