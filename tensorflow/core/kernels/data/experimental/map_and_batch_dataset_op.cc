@@ -179,14 +179,8 @@ class MapAndBatchDatasetOp::Dataset : public DatasetBase {
                                  params.dataset->batch_size_)) {}
 
     ~Iterator() override {
-      mutex_lock l(*mu_);
-      // Cancel the runner thread.
-      cancelled_ = true;
-      cond_var_->notify_all();
-      // Wait for all in-flight calls to complete.
-      while (num_calls_ > 0) {
-        cond_var_->wait(l);
-      }
+      CancelThreads(/*wait=*/true);
+      if (deregister_fn_) deregister_fn_();
     }
 
     string BuildTraceMeName() override {
@@ -209,6 +203,9 @@ class MapAndBatchDatasetOp::Dataset : public DatasetBase {
       if (num_parallel_calls_->value == model::kAutotune) {
         num_parallel_calls_->value = ctx->runner_threadpool_size();
       }
+      TF_RETURN_IF_ERROR(RegisterCancellationCallback(
+          ctx->cancellation_manager(),
+          [this]() { CancelThreads(/*wait=*/false); }, &deregister_fn_));
       TF_RETURN_IF_ERROR(
           dataset()->input_->MakeIterator(ctx, prefix(), &input_impl_));
       return dataset()->captured_func_->Instantiate(
@@ -222,13 +219,16 @@ class MapAndBatchDatasetOp::Dataset : public DatasetBase {
       {
         mutex_lock l(*mu_);
         EnsureRunnerThreadStarted(ctx);
-        while (batch_results_.empty() ||
-               batch_results_.front()->num_calls > 0) {
+        while (!cancelled_ && (batch_results_.empty() ||
+                               batch_results_.front()->num_calls > 0)) {
           ++waiting_;
           RecordStop(ctx);
           cond_var_->wait(l);
           RecordStart(ctx);
           --waiting_;
+        }
+        if (cancelled_) {
+          return errors::Cancelled("Iterator was cancelled");
         }
         std::swap(result, batch_results_.front());
         batch_results_.pop_front();
@@ -416,6 +416,16 @@ class MapAndBatchDatasetOp::Dataset : public DatasetBase {
                                             std::move(done), prefix());
     }
 
+    void CancelThreads(bool wait) LOCKS_EXCLUDED(mu_) {
+      mutex_lock l(*mu_);
+      cancelled_ = true;
+      cond_var_->notify_all();
+      // Wait for all in-flight calls to complete.
+      while (wait && num_calls_ > 0) {
+        cond_var_->wait(l);
+      }
+    }
+
     Status CopyPartialBatch(Tensor* output, const Tensor& value,
                             int64 num_elements) {
       switch (value.dtype()) {
@@ -456,6 +466,7 @@ class MapAndBatchDatasetOp::Dataset : public DatasetBase {
         return Status::OK();
       }
       const size_t num_components = return_values->size();
+      result->output.reserve(num_components);
       for (size_t i = 0; i < num_components; ++i) {
         TensorShape component_shape({dataset()->batch_size_});
         component_shape.AppendShape(return_values->at(i).shape());
@@ -731,6 +742,9 @@ class MapAndBatchDatasetOp::Dataset : public DatasetBase {
     // Identifies the maximum number of batch results to store.
     int64 max_batch_results_ GUARDED_BY(*mu_);
     std::unique_ptr<InstantiatedCapturedFunction> instantiated_captured_func_;
+
+    // Method for deregistering the cancellation callback.
+    std::function<void()> deregister_fn_;
   };
 
   const DatasetBase* const input_;

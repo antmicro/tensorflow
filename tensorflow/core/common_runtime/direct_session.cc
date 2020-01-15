@@ -521,7 +521,6 @@ Status DirectSession::RunInternal(
                             executor_step_count, &debugger_state));
   }
 
-  run_state.rendez.reset(new IntraProcessRendezvous(device_mgr_.get()));
 #ifndef __ANDROID__
   // Set up for collectives if ExecutorsAndKeys declares a key.
   if (executors_and_keys->collective_graph_key !=
@@ -585,11 +584,20 @@ Status DirectSession::RunInternal(
     }
   }
 
+  const int64 call_timeout = run_options.timeout_in_ms() > 0
+                                 ? run_options.timeout_in_ms()
+                                 : operation_timeout_in_ms_;
+
   std::unique_ptr<RunHandler> handler;
   if (ShouldUseRunHandlerPool(run_options) &&
       run_options.experimental().use_run_handler_pool()) {
     VLOG(1) << "Using RunHandler to scheduler inter-op closures.";
-    handler = GetOrCreateRunHandlerPool(options_)->Get(step_id);
+    handler = GetOrCreateRunHandlerPool(options_)->Get(step_id, call_timeout);
+    if (!handler) {
+      return errors::DeadlineExceeded(
+          "Could not obtain RunHandler for request after waiting for ",
+          call_timeout, "ms.");
+    }
   }
   auto* handler_ptr = handler.get();
 
@@ -608,20 +616,14 @@ Status DirectSession::RunInternal(
   }
 
   // Start parallel Executors.
-  const int64 call_timeout = run_options.timeout_in_ms() > 0
-                                 ? run_options.timeout_in_ms()
-                                 : operation_timeout_in_ms_;
   const bool can_execute_synchronously = pool == nullptr && call_timeout == 0;
 
   Executor::Args args;
   args.step_id = step_id;
   args.call_frame = call_frame;
-  args.rendezvous = run_state.rendez.get();
   args.collective_executor =
       (run_state.collective_executor ? run_state.collective_executor->get()
                                      : nullptr);
-  CancellationManager step_cancellation_manager;
-  args.cancellation_manager = &step_cancellation_manager;
   args.session_state = &session_state_;
   args.session_handle = session_handle_;
   args.tensor_store = &run_state.tensor_store;
@@ -657,15 +659,11 @@ Status DirectSession::RunInternal(
 
   // Register this step with session's cancellation manager, so that
   // `Session::Close()` will cancel the step.
-  const CancellationToken cancellation_token =
-      cancellation_manager_->get_cancellation_token();
-  const bool already_cancelled = !cancellation_manager_->RegisterCallback(
-      cancellation_token, [&step_cancellation_manager]() {
-        step_cancellation_manager.StartCancel();
-      });
-  if (already_cancelled) {
+  CancellationManager step_cancellation_manager(cancellation_manager_);
+  if (step_cancellation_manager.IsCancelled()) {
     return errors::Cancelled("Run call was cancelled");
   }
+  args.cancellation_manager = &step_cancellation_manager;
 
   Status run_status;
 
@@ -694,14 +692,21 @@ Status DirectSession::RunInternal(
       };
 
   if (can_execute_synchronously) {
+    PrivateIntraProcessRendezvous rendezvous(device_mgr_.get());
+    args.rendezvous = &rendezvous;
+
     const auto& item = executors_and_keys->items[0];
     set_threadpool_args_for_item(item, &args);
     run_status = item.executor->Run(args);
   } else {
+    core::RefCountPtr<RefCountedIntraProcessRendezvous> rendezvous(
+        new RefCountedIntraProcessRendezvous(device_mgr_.get()));
+    args.rendezvous = rendezvous.get();
+
     // `barrier` will delete itself after the final executor finishes.
     Notification executors_done;
     ExecutorBarrier* barrier =
-        new ExecutorBarrier(num_executors, run_state.rendez.get(),
+        new ExecutorBarrier(num_executors, rendezvous.get(),
                             [&run_state, &executors_done](const Status& ret) {
                               {
                                 mutex_lock l(run_state.mu);
@@ -723,9 +728,7 @@ Status DirectSession::RunInternal(
     }
   }
 
-  if (!cancellation_manager_->DeregisterCallback(cancellation_token)) {
-    // The step has been cancelled: make sure we don't attempt to receive the
-    // outputs as this would make it block forever.
+  if (step_cancellation_manager.IsCancelled()) {
     run_status.Update(errors::Cancelled("Run call was cancelled"));
   }
 
@@ -796,6 +799,17 @@ Status DirectSession::Run(const RunOptions& run_options,
                           const std::vector<string>& target_nodes,
                           std::vector<Tensor>* outputs,
                           RunMetadata* run_metadata) {
+  return Run(run_options, inputs, output_names, target_nodes, outputs,
+             run_metadata, thread::ThreadPoolOptions());
+}
+
+Status DirectSession::Run(const RunOptions& run_options,
+                          const NamedTensorList& inputs,
+                          const std::vector<string>& output_names,
+                          const std::vector<string>& target_nodes,
+                          std::vector<Tensor>* outputs,
+                          RunMetadata* run_metadata,
+                          const thread::ThreadPoolOptions& threadpool_options) {
   TF_RETURN_IF_ERROR(CheckNotClosed());
   TF_RETURN_IF_ERROR(CheckGraphCreated("Run()"));
   direct_session_runs->GetCell()->IncrementBy(1);
@@ -855,7 +869,7 @@ Status DirectSession::Run(const RunOptions& run_options,
 
   TF_RETURN_IF_ERROR(RunInternal(step_id, run_options, &call_frame,
                                  executors_and_keys, run_metadata,
-                                 thread::ThreadPoolOptions()));
+                                 threadpool_options));
 
   // Receive outputs.
   if (outputs) {
@@ -1147,7 +1161,7 @@ Status DirectSession::SendPRunInputs(const NamedTensorList& inputs,
 
 Status DirectSession::RecvPRunOutputs(
     const std::vector<string>& output_names,
-    const ExecutorsAndKeys* executors_and_keys, RunState* run_state,
+    const ExecutorsAndKeys* executors_and_keys, PartialRunState* run_state,
     std::vector<Tensor>* outputs) {
   Status s;
   if (!output_names.empty()) {
@@ -1305,10 +1319,12 @@ Status DirectSession::CreateExecutors(
       options_.config.experimental().has_session_metadata()
           ? &options_.config.experimental().session_metadata()
           : nullptr;
+  const CustomKernelCreator* custom_kernel_creator =
+      GetDefaultCustomKernelCreator();
   func_info->proc_flr.reset(new ProcessFunctionLibraryRuntime(
       device_mgr_.get(), options_.env, &options_.config, graph_def_version,
       func_info->flib_def.get(), optimizer_opts, thread_pools_[0].first,
-      nullptr, nullptr, session_metadata));
+      nullptr, custom_kernel_creator, session_metadata));
 
   GraphOptimizer optimizer(optimizer_opts);
   for (auto iter = graphs.begin(); iter != graphs.end(); ++iter) {
