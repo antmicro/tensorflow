@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/experimental/micro/examples/magic_wand/constants.h"
+#include "tensorflow/lite/micro/examples/magic_wand/constants.h"
 
 // The number of expected consecutive inferences for each gesture type.
 // These defaults were established with the SparkFun Edge board.

@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/experimental/micro/examples/magic_wand/accelerometer_handler.h"
+#include "tensorflow/lite/micro/examples/magic_wand/accelerometer_handler.h"
 #include <stdio.h>
 #include <zephyr.h>
 #include <device.h>
