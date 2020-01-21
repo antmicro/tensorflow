@@ -82,12 +82,6 @@ build_embarc_mli() {
   gmake -j 4 -C ${1}/lib/make TCF_FILE=${2}
 }
 
-setup_zephyr() {
-	  export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
-	    export ZEPHYR_BASE=${1}
-    }
-
-
 # Main function handling the download, verify, extract, and patch process.
 download_and_extract() {
   local usage="Usage: download_and_extract URL MD5 DIR [ACTION] [ACTION_PARAM]"
@@ -163,8 +157,6 @@ download_and_extract() {
     patch_kissfft ${dir}
   elif [[ ${action} == "build_embarc_mli" ]]; then
     build_embarc_mli ${dir} ${action_param1}
-  elif [[ ${action} == "setup_zephyr" ]]; then
-    setup_zephyr ${dir}
   elif [[ ${action} ]]; then
     echo "Unknown action '${action}'"
     exit 1
