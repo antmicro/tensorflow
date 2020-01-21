@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13.1)
 include($ENV{ZEPHYR_BASE}/cmake/app/boilerplate.cmake NO_POLICY_SCOPE)
 project(tf_lite_magic_wand)
 
-set(TF_MICRO_DIR $ENV{TF_BASE}/tensorflow/lite/micro)
+set(TF_MICRO_DIR ${PROJECT_SOURCE_DIR}/../../../)
 file(GLOB MICRO_SOURCES ${TF_MICRO_DIR}/*cc)
 file(GLOB MICRO_HEADERS ${TF_MICRO_DIR}/*.h)
 file(GLOB MICRO_TESTS_SOURCES ${TF_MICRO_DIR}/*test.cc)
@@ -42,20 +42,20 @@ target_sources(app PRIVATE
                 ${MICRO_HEADERS}
                 ${MICRO_KERNEL_HEADERS}
                 ${MICRO_MEMORY_HEADERS}
-                $ENV{TF_BASE}/tensorflow/lite/c/common.c
-                $ENV{TF_BASE}/tensorflow/lite/core/api/error_reporter.cc
-                $ENV{TF_BASE}/tensorflow/lite/core/api/flatbuffer_conversions.cc
-                $ENV{TF_BASE}/tensorflow/lite/core/api/op_resolver.cc
-                $ENV{TF_BASE}/tensorflow/lite/core/api/tensor_utils.cc
-                $ENV{TF_BASE}/tensorflow/lite/kernels/internal/quantization_util.cc
-                $ENV{TF_BASE}/tensorflow/lite/kernels/kernel_util.cc
+                ${TF_MICRO_DIR}/../c/common.c
+                ${TF_MICRO_DIR}/../core/api/error_reporter.cc
+                ${TF_MICRO_DIR}/../core/api/flatbuffer_conversions.cc
+                ${TF_MICRO_DIR}/../core/api/op_resolver.cc
+                ${TF_MICRO_DIR}/../core/api/tensor_utils.cc
+                ${TF_MICRO_DIR}/../kernels/internal/quantization_util.cc
+                ${TF_MICRO_DIR}/../kernels/kernel_util.cc
 
                 )
 
 target_include_directories(app PRIVATE
-                $ENV{TF_BASE}
-                $ENV{TF_BASE}/tensorflow/lite/micro/tools/make/downloads/gemmlowp
-                $ENV{TF_BASE}/tensorflow/lite/micro/tools/make/downloads/flatbuffers/include
+                ${TF_MICRO_DIR}/../../../
+                ${TF_MICRO_DIR}/../micro/tools/make/downloads/gemmlowp
+                ${TF_MICRO_DIR}/../micro/tools/make/downloads/flatbuffers/include
                 $ENV{TOOLCHAIN_BASE}/include/c++/$ENV{TOOLCHAIN_VERSION}
                 $ENV{TOOLCHAIN_BASE}/include
                 $ENV{TOOLCHAIN_BASE}/include/c++/$ENV{TOOLCHAIN_VERSION}/riscv32-zephyr-elf/rv32i/ilp32

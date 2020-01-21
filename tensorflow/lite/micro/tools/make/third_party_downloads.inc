@@ -59,3 +59,7 @@ EMBARC_OSP_MD5 := "9eaf7b3a1ed05872a03da9796672a776"
 
 EMBARC_MLI_URL := "https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/archive/datatypes.zip"
 EMBARC_MLI_MD5 := "e2243f53c88ca3bedbb8cc8c3bb44053"
+
+ZEPHYR_URL := "https://github.com/zephyrproject-rtos/zephyr/archive/v2.1.0-rc3.tar.gz"
+ZEPHYR_MD5 := "b1e8165dcc4b83cd4cc63bf44520fa99"
+
