@@ -17,4 +17,4 @@ limitations under the License.
 
 // The number of expected consecutive inferences for each gesture type.
 // These defaults were established with the SparkFun Edge board.
-const int kConsecutiveInferenceThresholds[3] = {1, 1, 1};
+const int kConsecutiveInferenceThresholds[3] = {4, 1, 1};
