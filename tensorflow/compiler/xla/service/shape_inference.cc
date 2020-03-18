@@ -1805,12 +1805,6 @@ ShapeInference::InferDegenerateDimensionBroadcastShape(HloOpcode operation,
   dimensions[dnums.output_batch_dimension()] = input_batch / batch_group_count;
   dimensions[dnums.output_feature_dimension()] = kernel_output_features;
 
-  if (batch_group_count > 1) {
-    dimensions[dnums.output_batch_dimension()] =
-        kernel_output_features / batch_group_count;
-    dimensions[dnums.output_feature_dimension()] = batch_group_count;
-  }
-
   for (int i = 0; i < num_spatial_dims; ++i) {
     dimensions[dnums.output_spatial_dimensions(i)] =
         window_output_shape.dimensions(i);
@@ -2053,7 +2047,8 @@ ShapeInference::InferDegenerateDimensionBroadcastShape(HloOpcode operation,
   // returns a tuple that contains N array shapes.
   TF_RET_CHECK(!operand_shapes.empty());
   for (int i = 0; i < operand_shapes.size(); i++) {
-    if (!ShapeUtil::Equal(*operand_shapes[0], *operand_shapes[i])) {
+    if (!Shape::Equal().IgnoreMemorySpaceInLayout()(*operand_shapes[0],
+                                                    *operand_shapes[i])) {
       return InvalidArgument(
           "HLO all-to-all has operands with different shapes: the 0th "
           "operand shape %s, but the %dth operand has shape %s.",

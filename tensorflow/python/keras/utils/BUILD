@@ -163,7 +163,7 @@ py_library(
         "//tensorflow/python:framework_ops",
         "//tensorflow/python:util",
         "//tensorflow/python/keras:backend",
-        "//tensorflow/python/keras:layers",
+        "//tensorflow/python/keras/layers",
     ],
 )
 
@@ -244,6 +244,7 @@ tf_py_test(
         ":tf_utils",
         "//tensorflow/python:client_testlib",
         "//tensorflow/python/keras",
+        "//tensorflow/python/keras:combinations",
     ],
 )
 
@@ -264,7 +265,7 @@ tf_py_test(
         "//tensorflow/python:sparse_ops",
         "//tensorflow/python:sparse_tensor",
         "//tensorflow/python/keras:engine",
-        "//tensorflow/python/keras:layers",
+        "//tensorflow/python/keras/layers",
         "//tensorflow/python/ops/ragged:ragged_tensor",
         "//third_party/py/numpy",
         "@absl_py//absl/testing:parameterized",
@@ -370,6 +371,7 @@ tf_py_test(
         "//tensorflow/python:platform_test",
         "//tensorflow/python/eager:context",
         "//tensorflow/python/keras",
+        "//tensorflow/python/keras:combinations",
         "//tensorflow/python/ops/ragged:ragged_factory_ops",
         "//tensorflow/python/ops/ragged:ragged_tensor",
         "@absl_py//absl/testing:parameterized",
