@@ -32,11 +32,12 @@ float bufz[BUFLEN] = {0.0};
 bool initial = true;
 
 TfLiteStatus SetupAccelerometer(tflite::ErrorReporter* error_reporter) {
-  sensor = device_get_binding("accel-0");
+  sensor = device_get_binding(DT_INST_0_ADI_ADXL345_LABEL);
   if(sensor == NULL) {
-    error_reporter->Report("Failed to get accelerometer\n");
+    error_reporter->Report("Failed to get accelerometer, label: %s\n", DT_INST_0_ADI_ADXL345_LABEL);
+  } else {
+    error_reporter->Report("Got accelerometer, label: %s\n", DT_INST_0_ADI_ADXL345_LABEL);
   }
-  error_reporter->Report("Got accelerometer\n");
   return kTfLiteOk;
 }
 
@@ -65,6 +66,7 @@ bool ReadAccelerometer(tflite::ErrorReporter* error_reporter, float* input,
   }
 
   samples_count = rc;
+  error_reporter->Report("Samples count: %d\n", samples_count);
   for(int i = 0; i < samples_count; i++) {
     rc = sensor_channel_get(sensor,
                             SENSOR_CHAN_ACCEL_XYZ,
@@ -73,9 +75,10 @@ bool ReadAccelerometer(tflite::ErrorReporter* error_reporter, float* input,
       error_reporter->Report("ERROR: Update failed: %d\n", rc);
       return false;
     }
-    bufx[begin_index] = sensor_value_to_double(&accel[0]);
-    bufy[begin_index] = sensor_value_to_double(&accel[1]);
-    bufz[begin_index] = sensor_value_to_double(&accel[2]);
+    error_reporter->Report("x: %d y: %d z: %d, index: %d", accel[0].val1, accel[1].val1, accel[2].val1, current_index);
+    bufx[begin_index] = (float)sensor_value_to_double(&accel[0]);
+    bufy[begin_index] = (float)sensor_value_to_double(&accel[1]);
+    bufz[begin_index] = (float)sensor_value_to_double(&accel[2]);
     begin_index++;
     if (begin_index >= BUFLEN) begin_index = 0;
 
@@ -90,7 +93,7 @@ bool ReadAccelerometer(tflite::ErrorReporter* error_reporter, float* input,
   }
 
   int sample = 0;
-  for (int i = 0; i < length; i+=3) {
+  for (int i = 0; i < (length - 3); i+=3) {
     int ring_index = begin_index + sample - length/3;
     if(ring_index < 0) {
       ring_index += BUFLEN;
