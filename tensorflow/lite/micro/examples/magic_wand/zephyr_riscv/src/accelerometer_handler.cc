@@ -25,56 +25,63 @@ int begin_index = 0;
 struct device *sensor = NULL;
 int current_index = 0;
 
-float bufx[BUFLEN] = {0.0};
-float bufy[BUFLEN] = {0.0};
-float bufz[BUFLEN] = {0.0};
+float bufx[BUFLEN] = {0.0f};
+float bufy[BUFLEN] = {0.0f};
+float bufz[BUFLEN] = {0.0f};
 
 bool initial = true;
 
 TfLiteStatus SetupAccelerometer(tflite::ErrorReporter* error_reporter) {
-  sensor = device_get_binding(DT_INST_0_ADI_ADXL345_LABEL);
+  /*sensor = device_get_binding(DT_INST_0_ADI_ADXL345_LABEL);
   if(sensor == NULL) {
     error_reporter->Report("Failed to get accelerometer, label: %s\n", DT_INST_0_ADI_ADXL345_LABEL);
   } else {
     error_reporter->Report("Got accelerometer, label: %s\n", DT_INST_0_ADI_ADXL345_LABEL);
-  }
+  }*/
   return kTfLiteOk;
 }
 
 bool ReadAccelerometer(tflite::ErrorReporter* error_reporter, float* input,
-                       int length, bool reset_buffer) {
+                       int length) {
   int rc;
   struct sensor_value accel[3];
   int samples_count;
 
-  if(reset_buffer) {
-    memset(bufx, 0, BUFLEN*sizeof(float));
-    memset(bufy, 0, BUFLEN*sizeof(float));
-    memset(bufz, 0, BUFLEN*sizeof(float));
-    begin_index = 0;
-    initial = true;
-  }
+  //if(reset_buffer) {
+  //  memset(bufx, 0, BUFLEN*sizeof(float));
+  //  memset(bufy, 0, BUFLEN*sizeof(float));
+  //  memset(bufz, 0, BUFLEN*sizeof(float));
+  //  begin_index = 0;
+  //  initial = true;
+  //}
 
-  rc = sensor_sample_fetch(sensor);
-  if(rc < 0) {
-    error_reporter -> Report("Fetch failed\n");
-    return false;
-  }
+  //rc = sensor_sample_fetch(sensor);
+  //if(rc < 0) {
+  //  error_reporter -> Report("Fetch failed\n");
+  //  return false;
+  //}
   // skip if there is no data
-  if(!rc) {
-    return false;
-  }
+  //if(!rc) {
+  //  return false;
+  //}
 
-  samples_count = rc;
+  //samples_count = rc;
+  samples_count = 32;
   error_reporter->Report("Samples count: %d\n", samples_count);
   for(int i = 0; i < samples_count; i++) {
-    rc = sensor_channel_get(sensor,
-                            SENSOR_CHAN_ACCEL_XYZ,
-                            accel);
-    if (rc < 0) {
-      error_reporter->Report("ERROR: Update failed: %d\n", rc);
-      return false;
-    }
+    //rc = sensor_channel_get(sensor,
+    //                        SENSOR_CHAN_ACCEL_XYZ,
+    //                        accel);
+    //if (rc < 0) {
+    //  error_reporter->Report("ERROR: Update failed: %d\n", rc);
+    //  return false;
+    //}
+    accel[0].val1 = 255;
+    accel[0].val2 = 0;
+    accel[1].val1 = 255;
+    accel[1].val2 = 0;
+    accel[2].val1 = 255;
+    accel[2].val2 = 0;
     error_reporter->Report("x: %d y: %d z: %d, index: %d", accel[0].val1, accel[1].val1, accel[2].val1, current_index);
     bufx[begin_index] = (float)sensor_value_to_double(&accel[0]);
     bufy[begin_index] = (float)sensor_value_to_double(&accel[1]);
