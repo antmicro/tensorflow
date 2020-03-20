@@ -92,7 +92,7 @@ setup_zephyr() {
   }
   cd ${1}
   virtualenv -p python3 venv-zephyr
-  source venv-zephyr/bin/activate
+  . venv-zephyr/bin/activate
   pip install -r scripts/requirements.txt
   west init -m https://github.com/zephyrproject-rtos/zephyr.git
   deactivate
