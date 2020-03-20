@@ -91,8 +91,11 @@ setup_zephyr() {
     echo >&2 "The required 'virtualenv' tool isn't installed. Try 'pip install virtualenv'."; exit 1;
   }
   cd ${1}
+  virtualenv venv-zephyr
+  source venv-zephyr/bin/activate
   pip install -r scripts/requirements.txt
   west init -m https://github.com/zephyrproject-rtos/zephyr.git
+  deactivate
   cd -
 }
 
