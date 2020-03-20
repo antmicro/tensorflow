@@ -90,13 +90,11 @@ setup_zephyr() {
   command -v virtualenv >/dev/null 2>&1 || {
     echo >&2 "The required 'virtualenv' tool isn't installed. Try 'pip install virtualenv'."; exit 1;
   }
-  cd ${1}
-  virtualenv -p python3 venv-zephyr
-  . venv-zephyr/bin/activate
-  pip install -r scripts/requirements.txt
+  virtualenv -p python3 ${1}/venv-zephyr
+  . ${1}/venv-zephyr/bin/activate
+  pip install -r ${1}/scripts/requirements.txt
   west init -m https://github.com/zephyrproject-rtos/zephyr.git
   deactivate
-  cd -
 }
 
 # Main function handling the download, verify, extract, and patch process.
