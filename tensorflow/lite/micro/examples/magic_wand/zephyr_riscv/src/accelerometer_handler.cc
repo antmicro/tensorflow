@@ -32,12 +32,12 @@ float bufz[BUFLEN] = {0.0f};
 bool initial = true;
 
 TfLiteStatus SetupAccelerometer(tflite::ErrorReporter* error_reporter) {
-  /*sensor = device_get_binding(DT_INST_0_ADI_ADXL345_LABEL);
+  sensor = device_get_binding(DT_INST_0_ADI_ADXL345_LABEL);
   if(sensor == NULL) {
     error_reporter->Report("Failed to get accelerometer, label: %s\n", DT_INST_0_ADI_ADXL345_LABEL);
   } else {
     error_reporter->Report("Got accelerometer, label: %s\n", DT_INST_0_ADI_ADXL345_LABEL);
-  }*/
+  }
   return kTfLiteOk;
 }
 
@@ -55,34 +55,25 @@ bool ReadAccelerometer(tflite::ErrorReporter* error_reporter, float* input,
   //  initial = true;
   //}
 
-  //rc = sensor_sample_fetch(sensor);
-  //if(rc < 0) {
-  //  error_reporter -> Report("Fetch failed\n");
-  //  return false;
-  //}
-  // skip if there is no data
-  //if(!rc) {
-  //  return false;
-  //}
+  rc = sensor_sample_fetch(sensor);
+  if(rc < 0) {
+    error_reporter -> Report("Fetch failed\n");
+    return false;
+  }
+   //skip if there is no data
+  if(!rc) {
+    return false;
+  }
 
-  //samples_count = rc;
-  samples_count = 32;
-  error_reporter->Report("Samples count: %d\n", samples_count);
+  samples_count = rc;
   for(int i = 0; i < samples_count; i++) {
-    //rc = sensor_channel_get(sensor,
-    //                        SENSOR_CHAN_ACCEL_XYZ,
-    //                        accel);
-    //if (rc < 0) {
-    //  error_reporter->Report("ERROR: Update failed: %d\n", rc);
-    //  return false;
-    //}
-    accel[0].val1 = 255;
-    accel[0].val2 = 0;
-    accel[1].val1 = 255;
-    accel[1].val2 = 0;
-    accel[2].val1 = 255;
-    accel[2].val2 = 0;
-    error_reporter->Report("x: %d y: %d z: %d, index: %d", accel[0].val1, accel[1].val1, accel[2].val1, current_index);
+    rc = sensor_channel_get(sensor,
+                            SENSOR_CHAN_ACCEL_XYZ,
+                            accel);
+    if (rc < 0) {
+      error_reporter->Report("ERROR: Update failed: %d\n", rc);
+      return false;
+    }
     bufx[begin_index] = (float)sensor_value_to_double(&accel[0]);
     bufy[begin_index] = (float)sensor_value_to_double(&accel[1]);
     bufz[begin_index] = (float)sensor_value_to_double(&accel[2]);
