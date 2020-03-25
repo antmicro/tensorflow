@@ -25,7 +25,6 @@ target_sources(app PRIVATE
                 src/assert.cc
                 src/accelerometer_handler.cc
                 src/accelerometer_handler.h
-                src/constants.cc
                 ../output_handler.cc
                 ../output_handler.h
                 ../gesture_predictor.cc
