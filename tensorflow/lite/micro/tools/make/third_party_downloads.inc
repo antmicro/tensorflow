@@ -57,8 +57,8 @@ PERSON_MODEL_INT8_MD5 := "8a7d2c70325f53136faea6dde517b8cc"
 EMBARC_OSP_URL := "https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_osp/archive/embarc_mli.zip"
 EMBARC_OSP_MD5 := "9eaf7b3a1ed05872a03da9796672a776"
 
-ZEPHYR_URL := "https://github.com/antmicro/zephyr/archive/00f3500.zip"
-ZEPHYR_MD5 := "eb18394d792dfdf98421975143775320"
+ZEPHYR_URL := "https://github.com/antmicro/zephyr/archive/dc9bc60.zip"
+ZEPHYR_MD5 := "d2532db2580baa2a3107c80b619051d9"
 
 EMBARC_MLI_URL := "https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/archive/6316034d421cbbb59756239908d7c9a99075a3bb.zip"
 EMBARC_MLI_MD5 := "db0910cf0e07e43f74ae7a31de485d56"
