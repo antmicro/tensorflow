@@ -1,4 +1,4 @@
-/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -12,29 +12,24 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_ROUND_H_
-#define TENSORFLOW_LITE_KERNELS_INTERNAL_ROUND_H_
+#ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_MIN_H_
+#define TENSORFLOW_LITE_KERNELS_INTERNAL_MIN_H_
 
 #include <cmath>
 
 namespace tflite {
 
-// TODO(aselle): See if we can do this only on jdk. Also mikecase, check
-// if you need this for java host build.
-#if defined(TF_LITE_USE_GLOBAL_ROUND) || \
-    (defined(__ANDROID__) && !defined(__NDK_MAJOR__)) || defined(ARDUINO) || defined(__ZEPHYR__)
-template <class T>
-inline float TfLiteRound(const float x) {
-  return ::round(x);
+#if defined(TF_LITE_USE_GLOBAL_MIN) || defined(__ZEPHYR__)
+inline float TfLiteMin(const float& x, const float& y) {
+  return std::min(x, y);
 }
-inline double TfLiteRound(const double x) { return ::round(x); }
 #else
 template <class T>
-inline T TfLiteRound(const T x) {
-  return std::round(x);
+inline T TfLiteMin(const T& x, const T& y) {
+  return std::fmin(x, y);
 }
 #endif
 
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_ROUND_H_
+#endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_MIN_H_

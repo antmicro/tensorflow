@@ -19,6 +19,8 @@ limitations under the License.
 #include <cmath>
 
 #include "tensorflow/lite/c/builtin_op_data.h"
+#include "tensorflow/lite/kernels/internal/max.h"
+#include "tensorflow/lite/kernels/internal/min.h"
 
 namespace tflite {
 namespace ops {
@@ -30,11 +32,11 @@ inline float ActivationValFloat(TfLiteFusedActivation act, float a) {
     case kTfLiteActNone:
       return a;
     case kTfLiteActRelu:
-      return std::fmax(0.0f, a);
+      return TfLiteMax(0.0f, a);
     case kTfLiteActRelu1:
-      return std::fmax(-1.0f, std::fmin(a, 1.0f));
+      return TfLiteMax(-1.0f, TfLiteMin(a, 1.0f));
     case kTfLiteActRelu6:
-      return std::fmax(0.0f, std::fmin(a, 6.0f));
+      return TfLiteMax(0.0f, TfLiteMin(a, 6.0f));
     case kTfLiteActTanh:
       return std::tanh(a);
     case kTfLiteActSignBit:
