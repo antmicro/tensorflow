@@ -74,8 +74,8 @@ PERSON_MODEL_INT8_MD5 := "8a7d2c70325f53136faea6dde517b8cc"
 EMBARC_MLI_URL := "https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/archive/58284867ca52d1f43b25045e8601999d7359d986.zip"
 EMBARC_MLI_MD5 := "2bf4982a327fdaa9d475803ce014d1ef"
 
-EMBARC_MLI_PRE_COMPILED_URL := "https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/releases/download/Release_1.1_RC2/embARC_MLI_package.zip"
-EMBARC_MLI_PRE_COMPILED_MD5 := "a95ff9e0370434484f14e7e4114327f6"
+ZEPHYR_URL := "https://github.com/antmicro/zephyr/archive/55e36b9.zip"
+ZEPHYR_MD5 := "755622eb4812fde918a6382b65d50c3b"
 
 XTENSA_HIFI4_URL :="https://github.com/foss-xtensa/nnlib-hifi4/raw/master/archive/xa_nnlib_04_07.zip"
 XTENSA_HIFI4_MD5 :="f234764928f9a42901df33a27e118c8b"
