@@ -99,4 +99,12 @@ _ld_data_load_source = LOADADDR(.data);
   libgcc.a (*)
 }
 
+. = ALIGN(4);
+__exidx_start = .;
+.ARM.exidx : ALIGN(4)
+{
+  *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+} > FLASH
+__exidx_end = .;
+
 }  /* SECTIONS */

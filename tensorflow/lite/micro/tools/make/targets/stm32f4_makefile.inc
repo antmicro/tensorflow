@@ -6,7 +6,7 @@ ifeq ($(TARGET), stm32f4)
 
   $(eval $(call add_third_party_download,$(GCC_EMBEDDED_URL),$(GCC_EMBEDDED_MD5),gcc_embedded,))
   $(eval $(call add_third_party_download,$(CMSIS_URL),$(CMSIS_MD5),cmsis,))
-  $(eval $(call add_third_party_download,$(STM32_BARE_LIB_URL),$(STM32_BARE_LIB_MD5),stm32_bare_lib,))
+  $(eval $(call add_third_party_download,$(STM32_BARE_LIB_URL),$(STM32_BARE_LIB_MD5),stm32_bare_lib,comment_bss_initialization))
 
   PLATFORM_FLAGS = \
     -DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK \
@@ -59,25 +59,25 @@ ifeq ($(TARGET), stm32f4)
   MICROLITE_CC_SRCS := $(filter-out $(EXCLUDED_SRCS), $(MICROLITE_CC_SRCS))
   TEST_SCRIPT := tensorflow/lite/micro/testing/test_stm32f4_binary.sh
   # TODO, non working tests.. the micro_speech example partly works
-  EXCLUDED_TESTS := \
-    tensorflow/lite/micro/micro_interpreter_test.cc \
-    tensorflow/lite/micro/micro_allocator_test.cc \
-    tensorflow/lite/micro/memory_helpers_test.cc \
-    tensorflow/lite/micro/kernels/logistic_test.cc \
-    tensorflow/lite/micro/kernels/logical_test.cc \
-    tensorflow/lite/micro/kernels/maximum_minimum_test.cc \
-    tensorflow/lite/micro/kernels/comparisons_test.cc \
-    tensorflow/lite/micro/kernels/reshape_test.cc \
-    tensorflow/lite/micro/kernels/arg_min_max_test.cc \
-    tensorflow/lite/micro/kernels/elementwise_test.cc \
-    tensorflow/lite/micro/kernels/strided_slice_test.cc \
-    tensorflow/lite/micro/kernels/prelu_test.cc \
-    tensorflow/lite/micro/kernels/pack_test.cc \
-    tensorflow/lite/micro/kernels/activations_test.cc \
-    tensorflow/lite/micro/kernels/dequantize_test.cc \
-    tensorflow/lite/micro/kernels/unpack_test.cc \
-    tensorflow/lite/micro/kernels/split_test.cc \
-    tensorflow/lite/micro/simple_tensor_allocator_test.cc
+    #  EXCLUDED_TESTS := \
+    #    tensorflow/lite/micro/micro_interpreter_test.cc \
+    #    tensorflow/lite/micro/micro_allocator_test.cc \
+    #    tensorflow/lite/micro/memory_helpers_test.cc \
+    #    tensorflow/lite/micro/kernels/logistic_test.cc \
+    #    tensorflow/lite/micro/kernels/logical_test.cc \
+    #    tensorflow/lite/micro/kernels/maximum_minimum_test.cc \
+    #    tensorflow/lite/micro/kernels/comparisons_test.cc \
+    #    tensorflow/lite/micro/kernels/reshape_test.cc \
+    #    tensorflow/lite/micro/kernels/arg_min_max_test.cc \
+    #    tensorflow/lite/micro/kernels/elementwise_test.cc \
+    #    tensorflow/lite/micro/kernels/strided_slice_test.cc \
+    #    tensorflow/lite/micro/kernels/prelu_test.cc \
+    #    tensorflow/lite/micro/kernels/pack_test.cc \
+    #    tensorflow/lite/micro/kernels/activations_test.cc \
+    #    tensorflow/lite/micro/kernels/dequantize_test.cc \
+    #    tensorflow/lite/micro/kernels/unpack_test.cc \
+    #    tensorflow/lite/micro/kernels/split_test.cc \
+    #    tensorflow/lite/micro/simple_tensor_allocator_test.cc
   MICROLITE_TEST_SRCS := $(filter-out $(EXCLUDED_TESTS), $(MICROLITE_TEST_SRCS))
   EXCLUDED_EXAMPLE_TESTS := \
     tensorflow/lite/micro/examples/magic_wand/Makefile.inc \

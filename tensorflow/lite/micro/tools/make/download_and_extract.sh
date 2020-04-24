@@ -171,6 +171,8 @@ download_and_extract() {
     patch_cifar10_dataset ${dir}
   elif [[ ${action} == "build_embarc_mli" ]]; then
     build_embarc_mli ${dir} ${action_param1}
+  elif [[ ${action} == "comment_bss_initialization" ]]; then
+    sed -i.bak 's/_zero_initialize_bss_data();/\/\/ &/g' "${dir}/source/startup.c"
   elif [[ ${action} ]]; then
     echo "Unknown action '${action}'"
     exit 1
