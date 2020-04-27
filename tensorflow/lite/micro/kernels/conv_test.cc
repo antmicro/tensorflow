@@ -48,6 +48,13 @@ static TfLiteConvParams common_conv_params = {
     1,                    // dilation_height_factor
 };
 
+TfLiteStatus FunctionExample(TfLiteContext* context, size_t arg2, void** arg3) {
+
+  context->ReportError(context, "Successfully called FunctionExample");
+
+  return kTfLiteOk;
+}
+
 template <typename T>
 TfLiteStatus ValidateConvGoldens(TfLiteTensor* tensors, int tensors_size,
                                  const T* expected_output_data, T* output_data,
@@ -68,9 +75,15 @@ TfLiteStatus ValidateConvGoldens(TfLiteTensor* tensors, int tensors_size,
   size_t init_data_size = 0;
   void* user_data = nullptr;
 
+  // Without such call, AllocatePersistentBuffer function handler is uninitialized
+  //context.AllocatePersistentBuffer = FunctionExample;
+
   if (registration->init) {
     user_data = registration->init(&context, init_data, init_data_size);
   }
+
+  context.ReportError(&context, "After the test, exiting...");
+  exit(-1);
 
   int inputs_array_data[] = {3, 0, 1, 2};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);

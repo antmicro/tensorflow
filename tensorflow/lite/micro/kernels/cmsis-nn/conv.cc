@@ -109,7 +109,26 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   void* raw;
+
+  if (context->AllocatePersistentBuffer == nullptr)
+  {
+    // Print the address of the context->AllocatePersistentBuffer function handler (pointer)
+    context->ReportError(context, "context->AllocatePersistentBuffer points to the memory at: %x...",
+                    context->AllocatePersistentBuffer);
+  
+    // Make sure with 0xDECAFF00 address whether this is the problematic function...
+    context->AllocatePersistentBuffer = 0xdecaff00;
+  
+    // ...and whether such ReportError call is correct for printing the function address
+    context->ReportError(context, "...so it was changed to the %x to make sure this is the problem",
+                    context->AllocatePersistentBuffer);
+  }
+
   context->AllocatePersistentBuffer(context, sizeof(int), &raw);
+
+  // If the above call causes a crash, this will never be printed
+  context->ReportError(context, "AllocatePersistentBuffer successfully returned");
+
   return raw;
 }
 
