@@ -33,14 +33,14 @@ float bufz[BUFLEN] = {0.0f};
 bool initial = true;
 
 TfLiteStatus SetupAccelerometer(tflite::ErrorReporter* error_reporter) {
-  sensor = device_get_binding("accel-0");
+  sensor = device_get_binding(DT_LABEL(DT_NODELABEL(adxl)));
   if (sensor == NULL) {
     TF_LITE_REPORT_ERROR(error_reporter,
                          "Failed to get accelerometer, label: %s\n",
-                         "accel-0");
+                         DT_LABEL(DT_NODELABEL(adxl)));
   } else {
     TF_LITE_REPORT_ERROR(error_reporter, "Got accelerometer, label: %s\n",
-                         "accel-0");
+                         DT_LABEL(DT_NODELABEL(adxl)));
   }
   return kTfLiteOk;
 }

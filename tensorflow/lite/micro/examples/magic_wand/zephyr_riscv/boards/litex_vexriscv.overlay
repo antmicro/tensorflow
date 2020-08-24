@@ -17,7 +17,7 @@ limitations under the License.
 	label = "I2C0";
 	reg = <0xe0003000 0x4 0xe0003004 0x4>;
 
-	adxl@1d {
+	adxl: adxl@1d {
 		compatible = "adi,adxl345";
 		label = "accel-0";
 		reg = <0x1d>;
