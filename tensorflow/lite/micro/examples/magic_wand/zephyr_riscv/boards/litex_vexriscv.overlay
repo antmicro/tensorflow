@@ -13,9 +13,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+&uart0 {
+	reg = <0x82002000 0x18>;
+};
+
+&timer0 {
+	reg = <0x82002800 0x40>;
+};
+
+&dna0 {
+	reg = <0x82003800 0x20>;
+};
+
+&gpio_in {
+	reg = <0x82005800 0x4>;
+};
+
 &i2c0 {
 	label = "I2C0";
-	reg = <0xe0003000 0x4 0xe0003004 0x4>;
+	reg = <0x82005800 0x4 0x82005804 0x4>;
 
 	adxl: adxl@1d {
 		compatible = "adi,adxl345";
@@ -34,5 +50,9 @@ limitations under the License.
 };
 
 &prbs0 {
+	status = "disabled";
+};
+
+&spi0 {
 	status = "disabled";
 };
