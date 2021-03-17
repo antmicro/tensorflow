@@ -96,7 +96,12 @@ def _add_tflm_code(prefix_dir, makefile_options):
     os.makedirs(os.path.join(prefix_dir, dirname), exist_ok=True)
 
   for filepath in files:
-    shutil.copy(filepath, os.path.join(prefix_dir, os.path.dirname(filepath)))
+    try:
+      shutil.copy(filepath, os.path.join(prefix_dir, os.path.dirname(filepath)))
+    except shutil.SameFileError:
+      print(filepath)
+      print(prefix_dir)
+
 
 
 def _create_tflm_tree(prefix_dir, makefile_options):
