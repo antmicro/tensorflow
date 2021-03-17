@@ -54,8 +54,14 @@ def _get_file_list(key, makefile_options):
   if process.returncode != 0:
     raise RuntimeError("%s failed with \n\n %s" %
                        (" ".join(params_list), stderr.decode()))
+  
+  file_list = []
+  for bytepath in stdout.split():
+    decoded = bytepath.decode()
+    if os.path.isfile(decoded):
+      file_list.append(decoded)
 
-  return [bytepath.decode() for bytepath in stdout.split()]
+  return file_list
 
 
 def _add_third_party_code(prefix_dir, makefile_options):
